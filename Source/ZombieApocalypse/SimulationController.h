@@ -23,6 +23,13 @@ struct FPopulationDensityEffect : public FTableRowBase
 
 
 
+struct FConveyorBatch
+{
+	float AmountOfPeople = 0.f;
+	float RemainingDays  = 0.f;
+};
+
+
 UCLASS()
 class ZOMBIEAPOCALYPSE_API ASimulationController : public AActor
 {
@@ -31,14 +38,13 @@ class ZOMBIEAPOCALYPSE_API ASimulationController : public AActor
 public:	
 	ASimulationController();
 
-	// Runs one simulation step each Tick 
+	// Runs one simulation step every SimulationStepTime seconds
 	virtual void Tick(float DeltaTime) override;
 
-	// Function to read data from Unreal DataTable into the graphPts vector
+	// Read DataTable into graphPts
 	void ReadDataFromTableToVectors();
 
-
-	// Unreal Lookup table for population density effect
+	// Unreal DataTable for population density effect
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables")
 	class UDataTable* PopulationDensityEffectTable{ nullptr };
 
@@ -51,36 +57,75 @@ public:
 	bool bShouldDebug{ false };
 
 
-	// Stocks (initial)
+	// --------- SIMULATION PARAMETERS ---------
 
 	//Susceptible (People) - choose a number that has a clean sqrt!
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables")
+	/**
+	 * 
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Susceptible{ 100.f };
+
 	// Zombies = patient_zero
-	float Zombies{ 1.f };		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
+	float Zombies{ 1.f };
+
 	// Just to check if we are correctly updating stocks - used in SimulationHUD
-	float Bitten{ 0.f };          // s Bitten -> in BittenArraySize
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
+	float Bitten{ 0.f };   // Sum of conveyor contents
+
+	// Days it takes from bite to becoming a zombie
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float DaysToBecomeInfectedFromBite{ 15.f };
+
+	// Maximum number of people in the "Bitten" conveyor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float BittenCapacity{ 100.f };
+
+	// Conversion rate from bitten people to zombies
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float ConversionFromPeopleToZombies{ 1.f };
+
+	// Normal number of bites per zombie per day
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float NormalNumberOfBites{ 1.f }; // people/zombie/day
+
+	// Land area where people live (m^2)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float LandArea{ 1000.f };         // m2
+
+	// Normal population density (people/m^2)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
+	float NormalPopulationDensity{ 0.1f }; // people/m2
 
 
-	
 	// GRAPH points: population_density_effect_on_zombie_bites
 	// Values read in from Unreal DataTable for more flexibility
 	std::vector<std::pair<float, float>> graphPts;
-		//= {
-		//{0.000f, 0.014f}, {0.200f, 0.041f}, {0.400f, 0.101f}, {0.600f, 0.189f}, {0.800f, 0.433f},
-		//{1.000f, 1.000f}, {1.200f, 1.217f}, {1.400f, 1.282f}, {1.600f, 1.300f}, {1.800f, 1.300f},
-		//{2.000f, 1.300f}
-		//};
 
 	// Time accumulator for simulation steps, used in Tick function
 	float AccumulatedTime{ 0.f };
 
-	// Number of time steps completed - to keep track and compare to Stella
+	// Number of time steps completed - used in HUD
 	int TimeStepsFinished{ 0 };
 
-
+	// Last number of bites on susceptible in this step (useful to inspect)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Debug")
+	float LastBitesOnSusceptible{ 0.f };
 
 protected:
 	virtual void BeginPlay() override;
 
+private:
+	// Conveyor storage
+	std::vector<FConveyorBatch> Conveyor;
+
+	// Helper: interpolates in graphPts
+	float GraphLookup(float X) const;
+
+	// Helper: sums all AmountOfPeople in Conveyor
+	float ConveyorContent() const;
+
+	// One simulation "day" step (called every SimulationStepTime seconds)
+	void StepSimulation();
 };

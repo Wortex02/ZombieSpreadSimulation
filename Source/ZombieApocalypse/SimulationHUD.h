@@ -6,9 +6,6 @@
 #include "GameFramework/HUD.h"
 #include "SimulationHUD.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ZOMBIEAPOCALYPSE_API ASimulationHUD : public AHUD
 {
