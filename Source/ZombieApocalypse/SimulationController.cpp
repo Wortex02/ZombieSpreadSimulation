@@ -2,10 +2,10 @@
 
 #include "SimulationController.h"
 #include "Engine/DataTable.h"
+#include "Person.h"
 #include "Math/UnrealMathUtility.h"
 #include "Engine/World.h"
 #include "Logging/LogMacros.h"
-#include <cmath>
 
 ASimulationController::ASimulationController()
 {
@@ -15,24 +15,20 @@ ASimulationController::ASimulationController()
 void ASimulationController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Checking if the DataTable is assigned
+	
 	if (!PopulationDensityEffectTable)
 	{
 		UE_LOG(LogTemp, Error, TEXT("PopulationDensityEffectTable is not assigned!"));
 	}
 	else
 	{
-		// Table found, read data into vector
 		ReadDataFromTableToVectors();
 	}
-
-	// Initial stocks if you want to enforce them here
-	// Susceptible = 100.f;
-	// Zombies     = 1.f;
-	// Bitten will be derived from Conveyor, so start empty
+	
 	Conveyor.clear();
 	Bitten = 0.f;
+	
+	SpawnGrid();
 }
 
 void ASimulationController::Tick(float DeltaTime)
@@ -44,7 +40,7 @@ void ASimulationController::Tick(float DeltaTime)
 	// If Unreal timestep is reached
 	if (AccumulatedTime >= SimulationStepTime)
 	{
-		AccumulatedTime -= SimulationStepTime; // keep residual
+		AccumulatedTime -= SimulationStepTime;
 		StepSimulation();
 		TimeStepsFinished++;
 
@@ -59,6 +55,51 @@ void ASimulationController::Tick(float DeltaTime)
 				LastBitesOnSusceptible);
 		}
 	}
+}
+
+void ASimulationController::SpawnGrid()
+{
+	UWorld* World = GetWorld();
+	if (!World || !PersonClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SimulationController: World or PersonClass missing, cannot spawn grid."));
+		return;
+	}
+
+	HealthyPeople.Empty();
+	BittenPeople.Empty();
+	ZombiePeople.Empty();
+
+	// 1) Spawn GridSizeX * GridSizeY people in a grid
+	for (int32 y = 0; y < GridSizeY; ++y)
+	{
+		for (int32 x = 0; x < GridSizeX; ++x)
+		{
+			const FVector Location = GridOrigin + FVector(x * CellSpacing, y * CellSpacing, 0.f);
+			const FRotator Rotation = FRotator::ZeroRotator;
+
+			if (APerson* Person = World->SpawnActor<APerson>(PersonClass, Location, Rotation))
+			{
+				Person->SetState(EPersonState::Healthy);
+				HealthyPeople.Add(Person);
+			}
+		}
+	}
+
+	// Spawn patient zero and move it to (0,0,0)
+	if (APerson* PatientZero = World->SpawnActor<APerson>(PersonClass, FVector::ZeroVector, FRotator::ZeroRotator))
+	{
+		PatientZero->SetState(EPersonState::Zombie);
+		ZombiePeople.Add(PatientZero);
+	}
+
+	// Sync stocks with visual counts
+	Susceptible = HealthyPeople.Num();
+	Zombies = ZombiePeople.Num();
+	Bitten = BittenPeople.Num();
+
+	UE_LOG(LogTemp, Log, TEXT("Spawned %d healthy, %d zombies visually."),
+		   HealthyPeople.Num(), ZombiePeople.Num());
 }
 
 // Function to read data from Unreal DataTable into the graphPts vector
@@ -99,7 +140,6 @@ void ASimulationController::ReadDataFromTableToVectors()
 	}
 }
 
-// ---------- HELPER FUNCTIONS ----------
 
 float ASimulationController::GraphLookup(float X) const
 {
@@ -146,11 +186,9 @@ float ASimulationController::ConveyorContent() const
 	return Sum;
 }
 
-// ---------- MAIN SIMULATION STEP ----------
-
+// MAIN SIMULATION STEP
 void ASimulationController::StepSimulation()
 {
-	// ----- auxiliaries -----
 	Bitten = ConveyorContent();
 	const float NonZombiePopulation = Bitten + Susceptible;
 
@@ -180,8 +218,7 @@ void ASimulationController::StepSimulation()
 
 	LastBitesOnSusceptible = GettingBitten;
 
-	// ----- conveyor mechanics -----
-	// 1) progress existing batches
+	//conveyor mechanics
 	for (FConveyorBatch& B : Conveyor)
 	{
 		B.RemainingDays -= 1.f; // DT = 1 "day" per step
@@ -206,7 +243,7 @@ void ASimulationController::StepSimulation()
 
 	Conveyor = std::move(NextConveyor);
 
-	// 2) capacity check for new inflow
+	// capacity check for new inflow
 	const float CurrentContent = ConveyorContent();
 	const float FreeCap = FMath::Max(0.f, BittenCapacity - CurrentContent);
 	const float InflowPeople = FMath::Max(0.f, FMath::Min(GettingBitten, FreeCap));
@@ -219,13 +256,48 @@ void ASimulationController::StepSimulation()
 		Conveyor.push_back(NewBatch);
 	}
 
-	// 3) outflow converted to zombies
+	// outflow converted to zombies
 	const float BecomingInfected = RawOutflowPeople * ConversionFromPeopleToZombies;
 
-	// ----- stock updates -----
-	Susceptible = FMath::Max(0.f, Susceptible - GettingBitten);
+	const int32 NumNewBitten  = FMath::RoundToInt(InflowPeople);
+	const int32 NumNewZombies = FMath::RoundToInt(BecomingInfected);
+	
+	int32 RemainingToBite = NumNewBitten;
+	while (RemainingToBite > 0 && HealthyPeople.Num() > 0)
+	{
+		const int32 Index = FMath::RandRange(0, HealthyPeople.Num() - 1);
+		APerson* Victim = HealthyPeople[Index];
+		
+		HealthyPeople.RemoveAtSwap(Index);
+		BittenPeople.Add(Victim);
+		
+		Victim->SetState(EPersonState::Bitten);
+
+		--RemainingToBite;
+	}
+	
+	int32 RemainingToConvert = NumNewZombies;
+	while (RemainingToConvert > 0 && BittenPeople.Num() > 0)
+	{
+		const int32 Index = FMath::RandRange(0, BittenPeople.Num() - 1);
+		APerson* NewZombie = BittenPeople[Index];
+		
+		BittenPeople.RemoveAtSwap(Index);
+		ZombiePeople.Add(NewZombie);
+		
+		NewZombie->SetState(EPersonState::Zombie);
+
+		--RemainingToConvert;
+	}
+	
+	// stock updates
+	/*Susceptible = FMath::Max(0.f, Susceptible - GettingBitten);
 	Zombies     = FMath::Max(0.f, Zombies + BecomingInfected);
-	Bitten      = ConveyorContent(); // refresh from conveyor
+	Bitten      = ConveyorContent(); */
+	
+	Susceptible = HealthyPeople.Num();
+	Zombies     = ZombiePeople.Num();
+	Bitten      = BittenPeople.Num();
 }
 
  

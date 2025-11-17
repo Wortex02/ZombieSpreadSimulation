@@ -8,7 +8,7 @@
 #include <vector>
 #include "SimulationController.generated.h"
 
-
+class APerson;
 // Struct for the Unreal DataTable
 USTRUCT(BlueprintType)
 struct FPopulationDensityEffect : public FTableRowBase
@@ -60,9 +60,6 @@ public:
 	// --------- SIMULATION PARAMETERS ---------
 
 	//Susceptible (People) - choose a number that has a clean sqrt!
-	/**
-	 * 
-	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Susceptible{ 100.f };
 
@@ -113,6 +110,37 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Debug")
 	float LastBitesOnSusceptible{ 0.f };
 
+	// --------- Grid ---------
+	UPROPERTY(EditAnywhere, Category="Grid")
+	TSubclassOf<APerson> PersonClass;
+
+	// Grid dimensions
+	UPROPERTY(EditAnywhere, Category="Grid")
+	int32 GridSizeX{10};
+
+	UPROPERTY(EditAnywhere, Category="Grid")
+	int32 GridSizeY{10};
+
+	// Distance between people in the grid (cm)
+	UPROPERTY(EditAnywhere, Category="Grid")
+	float CellSpacing{200.f};
+
+	// Where the grid starts
+	UPROPERTY(EditAnywhere, Category="Griid")
+	FVector GridOrigin{ FVector(1000.f, 0.f, 0.f) };
+
+	// Arrays to track people by state
+	UPROPERTY()
+	TArray<APerson*> HealthyPeople;
+
+	UPROPERTY()
+	TArray<APerson*> BittenPeople;
+
+	UPROPERTY()
+	TArray<APerson*> ZombiePeople;
+
+	// Spawn visual grid + patient zero
+	void SpawnGrid();
 protected:
 	virtual void BeginPlay() override;
 
