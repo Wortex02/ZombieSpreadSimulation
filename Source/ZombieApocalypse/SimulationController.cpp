@@ -104,17 +104,7 @@ void ASimulationController::OnPersonDestroyed(AActor* DestroyedActor)
 		return;
 	}
 
-	/*if (Person->OnDestroyed == HealthyPeople)
-	{
-		InnocentKills += 1;
-	}
-
-	if (Bitten || Zombies)
-	{
-		ZombieKills += 1;
-	}*/
-
-	// If you want the simplest check that matches your current arrays:
+	// Updating the player kills for the HUD
 	if (HealthyPeople.Contains(Person))
 	{
 		InnocentKills += 1;                // increment the HUD counter for innocents
