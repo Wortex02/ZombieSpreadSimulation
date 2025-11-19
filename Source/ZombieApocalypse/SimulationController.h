@@ -9,6 +9,7 @@
 #include "SimulationController.generated.h"
 
 class APerson;
+
 // Struct for the Unreal DataTable
 USTRUCT(BlueprintType)
 struct FPopulationDensityEffect : public FTableRowBase
@@ -20,8 +21,6 @@ struct FPopulationDensityEffect : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float NormalPopulationDensity;
 };
-
-
 
 struct FConveyorBatch
 {
@@ -52,24 +51,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables")
 	float SimulationStepTime{ 1.f };
 
-	// Turn on/off debug printing to the Output Log
-	UPROPERTY(EditAnywhere, Category = "Simulation Variables")
-	bool bShouldDebug{ false };
-
-
-	// --------- SIMULATION PARAMETERS ---------
-
-	//Susceptible (People) - choose a number that has a clean sqrt!
+	//SIMULATION PARAMETERS
+	//Susceptible (People)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Susceptible{ 100.f };
 
-	// Zombies = patient_zero
+	// patient_zero
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Zombies{ 1.f };
-
-	// Just to check if we are correctly updating stocks - used in SimulationHUD
+	
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
-	float Bitten{ 0.f };   // Sum of conveyor contents
+	float Bitten{ 0.f };
 
 	// Days it takes from bite to becoming a zombie
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
@@ -85,11 +78,11 @@ public:
 
 	// Normal number of bites per zombie per day
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
-	float NormalNumberOfBites{ 1.f }; // people/zombie/day
+	float NormalNumberOfBites{ 1.f };  // People/zombie/day
 
 	// Land area where people live (m^2)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
-	float LandArea{ 1000.f };         // m2
+	float LandArea{ 1000.f }; // m2
 
 	// Normal population density (people/m^2)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
@@ -106,7 +99,7 @@ public:
 	// Number of time steps completed - used in HUD
 	int TimeStepsFinished{ 0 };
 
-	// Last number of bites on susceptible in this step (useful to inspect)
+	// Last number of bites on susceptible in this step
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Debug")
 	float LastBitesOnSusceptible{ 0.f };
 
@@ -139,8 +132,9 @@ public:
 	UPROPERTY()
 	TArray<APerson*> ZombiePeople;
 
-	// Spawn visual grid + patient zero
+	// Spawn grid of people + patient zero
 	void SpawnGrid();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -148,10 +142,10 @@ private:
 	// Conveyor storage
 	std::vector<FConveyorBatch> Conveyor;
 
-	// Helper: interpolates in graphPts
+	// interpolates in graphPts
 	float GraphLookup(float X) const;
 
-	// Helper: sums all AmountOfPeople in Conveyor
+	// sums all AmountOfPeople in Conveyor
 	float ConveyorContent() const;
 
 	// One simulation "day" step (called every SimulationStepTime seconds)
