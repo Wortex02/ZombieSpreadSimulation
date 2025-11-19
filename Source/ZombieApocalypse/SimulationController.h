@@ -60,7 +60,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Zombies{ 1.f };
 	
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
 	float Bitten{ 0.f };
 
@@ -90,7 +89,6 @@ public:
 
 
 	// GRAPH points: population_density_effect_on_zombie_bites
-	// Values read in from Unreal DataTable for more flexibility
 	std::vector<std::pair<float, float>> graphPts;
 
 	// Time accumulator for simulation steps, used in Tick function
@@ -103,7 +101,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Debug")
 	float LastBitesOnSusceptible{ 0.f };
 
-	// --------- Grid ---------
+	// Grid
 	UPROPERTY(EditAnywhere, Category="Grid")
 	TSubclassOf<APerson> PersonClass;
 

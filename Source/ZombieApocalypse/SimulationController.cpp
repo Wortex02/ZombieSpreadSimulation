@@ -36,8 +36,7 @@ void ASimulationController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AccumulatedTime += DeltaTime;
-
-	// If Unreal timestep is reached
+	
 	if (AccumulatedTime >= SimulationStepTime)
 	{
 		AccumulatedTime -= SimulationStepTime;
@@ -87,7 +86,7 @@ void ASimulationController::SpawnGrid()
 	Zombies = ZombiePeople.Num();
 	Bitten = BittenPeople.Num();
 
-	UE_LOG(LogTemp, Log, TEXT("Spawned %d healthy, %d zombies visually."),
+	UE_LOG(LogTemp, Log, TEXT("Spawned %d healthy, %d zombies"),
 		   HealthyPeople.Num(), ZombiePeople.Num());
 }
 
