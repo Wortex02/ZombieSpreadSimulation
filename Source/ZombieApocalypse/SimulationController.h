@@ -62,8 +62,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Zombies{ 1.f };
 	
+	// Sum of conveyor contents
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
-	float Bitten{ 0.f };   // Sum of conveyor contents
+	float Bitten{ 0.f };   
 
 	// Days it takes from bite to becoming a zombie
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")
@@ -91,7 +92,7 @@ public:
 
 
 	// GRAPH points: population_density_effect_on_zombie_bites
-	// Values read in from Unreal DataTable for more flexibility
+	// Values read in from Unreal DataTable
 	std::vector<std::pair<float, float>> graphPts;
 
 	// Time accumulator for simulation steps, used in Tick function

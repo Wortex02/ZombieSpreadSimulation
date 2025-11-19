@@ -58,7 +58,7 @@ void ASimulationController::SpawnGrid()
 	BittenPeople.Empty();
 	ZombiePeople.Empty();
 
-	// 1) Spawn GridSizeX * GridSizeY people in a grid
+	// Spawn GridSizeX * GridSizeY people in a grid
 	for (int32 y = 0; y < GridSizeY; ++y)
 	{
 		for (int32 x = 0; x < GridSizeX; ++x)
@@ -82,6 +82,9 @@ void ASimulationController::SpawnGrid()
 	{
 		PatientZero->SetState(EPersonState::Zombie);
 		ZombiePeople.Add(PatientZero);
+		
+		// Listen for when a person is destroyed in blueprint event graph
+		PatientZero->OnDestroyed.AddDynamic(this, &ASimulationController::OnPersonDestroyed);
 	}
 
 	// Sync stocks with visual counts
