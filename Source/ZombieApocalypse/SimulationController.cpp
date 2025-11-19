@@ -292,8 +292,8 @@ void ASimulationController::StepSimulation()
 	Bitten      = ConveyorContent(); */
 	
 	Susceptible = HealthyPeople.Num();
-	Zombies     = ZombiePeople.Num();
-	Bitten      = BittenPeople.Num();
+	Zombies = ZombiePeople.Num();
+	Bitten = BittenPeople.Num();
 }
 
  

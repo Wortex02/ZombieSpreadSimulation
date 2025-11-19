@@ -32,8 +32,7 @@ void ASimulationHUD::DrawHUD()
         //SimulationController->Zombies);
 
     //DrawText(message, textColor, screenPosition.X, screenPosition.Y, nullptr, textScale, true);
-
-    // Multiple lines for better organization
+	
     FString stepMessage = FString::Printf(TEXT("Day: %d"), SimulationController->TimeStepsFinished);
     FString humansMessage = FString::Printf(TEXT("Humans: %d"), (int)SimulationController->Susceptible);
     FString bittenMessage = FString::Printf(TEXT("Bitten: %d"), (int)SimulationController->Bitten);
