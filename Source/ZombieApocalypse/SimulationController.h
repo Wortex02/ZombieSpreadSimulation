@@ -64,7 +64,19 @@ public:
 	
 	// Sum of conveyor contents
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
-	float Bitten{ 0.f };   
+	float Bitten{ 0.f };
+
+	// Amount of player kills during the simulation
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
+	float InnocentKills{ 0.f };
+
+	// Amount of infected kills during the simulation
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
+	float InfectedKills{ 0.f };
+
+	// Amount of zombie kills during the simulation
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
+	float ZombieKills{ 0.f };
 
 	// Days it takes from bite to becoming a zombie
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Params")

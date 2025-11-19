@@ -104,6 +104,34 @@ void ASimulationController::OnPersonDestroyed(AActor* DestroyedActor)
 		return;
 	}
 
+	/*if (Person->OnDestroyed == HealthyPeople)
+	{
+		InnocentKills += 1;
+	}
+
+	if (Bitten || Zombies)
+	{
+		ZombieKills += 1;
+	}*/
+
+	// If you want the simplest check that matches your current arrays:
+	if (HealthyPeople.Contains(Person))
+	{
+		InnocentKills += 1;                // increment the HUD counter for innocents
+		HealthyPeople.RemoveSingle(Person);
+	}
+	else if (BittenPeople.Contains(Person))
+	{
+		InfectedKills += 1;
+		BittenPeople.RemoveSingle(Person);
+	}
+	else if (ZombiePeople.Contains(Person))
+	{
+		ZombieKills += 1;
+		ZombiePeople.RemoveSingle(Person);
+	}
+
+
 	// Remove from all state arrays (only one will actually contain it)
 	HealthyPeople.Remove(Person);
 	BittenPeople.Remove(Person);
