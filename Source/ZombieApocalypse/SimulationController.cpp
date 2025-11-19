@@ -82,6 +82,9 @@ void ASimulationController::SpawnGrid()
 			{
 				Person->SetState(EPersonState::Healthy);
 				HealthyPeople.Add(Person);
+
+				// Listen for when a person is destroyed in blueprint event graph
+				Person->OnDestroyed.AddDynamic(this, &ASimulationController::OnPersonDestroyed);
 			}
 		}
 	}
@@ -100,6 +103,25 @@ void ASimulationController::SpawnGrid()
 
 	UE_LOG(LogTemp, Log, TEXT("Spawned %d healthy, %d zombies visually."),
 		   HealthyPeople.Num(), ZombiePeople.Num());
+}
+
+void ASimulationController::OnPersonDestroyed(AActor* DestroyedActor)
+{
+	APerson* Person = Cast<APerson>(DestroyedActor);
+	if (!Person)
+	{
+		return;
+	}
+
+	// Remove from all state arrays (only one will actually contain it)
+	HealthyPeople.Remove(Person);
+	BittenPeople.Remove(Person);
+	ZombiePeople.Remove(Person);
+
+	// Recalculating stocks so numbers reflect remaining actors
+	Susceptible = HealthyPeople.Num();
+	Zombies = ZombiePeople.Num();
+	Bitten = BittenPeople.Num();
 }
 
 // Function to read data from Unreal DataTable into the graphPts vector

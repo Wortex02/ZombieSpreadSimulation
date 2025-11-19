@@ -139,6 +139,9 @@ public:
 	UPROPERTY()
 	TArray<APerson*> ZombiePeople;
 
+	UFUNCTION()
+	void OnPersonDestroyed(AActor* DestroyedActor);
+
 	// Spawn visual grid + patient zero
 	void SpawnGrid();
 protected:
