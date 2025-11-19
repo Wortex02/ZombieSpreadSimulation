@@ -36,24 +36,12 @@ void ASimulationController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AccumulatedTime += DeltaTime;
-
-	// If Unreal timestep is reached
+	
 	if (AccumulatedTime >= SimulationStepTime)
 	{
 		AccumulatedTime -= SimulationStepTime;
 		StepSimulation();
 		TimeStepsFinished++;
-
-		if (bShouldDebug)
-		{
-			UE_LOG(LogTemp, Log,
-				TEXT("Day %d -> Susceptible: %.2f, Bitten: %.2f, Zombies: %.2f, LastBitesOnSusceptible: %.0f"),
-				TimeStepsFinished,
-				Susceptible,
-				Bitten,
-				Zombies,
-				LastBitesOnSusceptible);
-		}
 	}
 }
 
@@ -89,7 +77,7 @@ void ASimulationController::SpawnGrid()
 		}
 	}
 
-	// Spawn patient zero and move it to (0,0,0)
+	// Spawn patient zero
 	if (APerson* PatientZero = World->SpawnActor<APerson>(PersonClass, FVector::ZeroVector, FRotator::ZeroRotator))
 	{
 		PatientZero->SetState(EPersonState::Zombie);
@@ -127,21 +115,12 @@ void ASimulationController::OnPersonDestroyed(AActor* DestroyedActor)
 // Function to read data from Unreal DataTable into the graphPts vector
 void ASimulationController::ReadDataFromTableToVectors()
 {
-	if (bShouldDebug)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Read Data From Table To Vectors"));
-	}
-
 	graphPts.clear();
 
 	TArray<FName> rowNames = PopulationDensityEffectTable->GetRowNames();
 
 	for (int32 i = 0; i < rowNames.Num(); i++)
 	{
-		if (bShouldDebug)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Reading table row index: %d"), i);
-		}
 
 		FPopulationDensityEffect* rowData =
 			PopulationDensityEffectTable->FindRow<FPopulationDensityEffect>(rowNames[i], TEXT(""));
@@ -150,14 +129,6 @@ void ASimulationController::ReadDataFromTableToVectors()
 		{
 			// Treat PopulationDensity as X and NormalPopulationDensity as Effect (Y)
 			graphPts.emplace_back(rowData->PopulationDensity, rowData->NormalPopulationDensity);
-
-			if (bShouldDebug)
-			{
-				const std::pair<float, float>& lastPair = graphPts.back();
-				UE_LOG(LogTemp, Warning,
-					TEXT("Row %d: pair: (X=%f, Y=%f)"),
-					i, lastPair.first, lastPair.second);
-			}
 		}
 	}
 }

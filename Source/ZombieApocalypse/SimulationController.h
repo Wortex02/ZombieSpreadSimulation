@@ -52,13 +52,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables")
 	float SimulationStepTime{ 1.f };
 
-	// Turn on/off debug printing to the Output Log
-	UPROPERTY(EditAnywhere, Category = "Simulation Variables")
-	bool bShouldDebug{ false };
 
-
-	// --------- SIMULATION PARAMETERS ---------
-
+	// SIMULATION PARAMETERS
 	//Susceptible (People) - choose a number that has a clean sqrt!
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Susceptible{ 100.f };
@@ -66,8 +61,7 @@ public:
 	// Zombies = patient_zero
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation Variables|Stocks")
 	float Zombies{ 1.f };
-
-	// Just to check if we are correctly updating stocks - used in SimulationHUD
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Stocks")
 	float Bitten{ 0.f };   // Sum of conveyor contents
 
@@ -106,11 +100,11 @@ public:
 	// Number of time steps completed - used in HUD
 	int TimeStepsFinished{ 0 };
 
-	// Last number of bites on susceptible in this step (useful to inspect)
+	// Last number of bites on susceptible in this step
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation Variables|Debug")
 	float LastBitesOnSusceptible{ 0.f };
 
-	// --------- Grid ---------
+	// Grid
 	UPROPERTY(EditAnywhere, Category="Grid")
 	TSubclassOf<APerson> PersonClass;
 
@@ -151,10 +145,10 @@ private:
 	// Conveyor storage
 	std::vector<FConveyorBatch> Conveyor;
 
-	// Helper: interpolates in graphPts
+	// interpolates in graphPts
 	float GraphLookup(float X) const;
 
-	// Helper: sums all AmountOfPeople in Conveyor
+	// sums all AmountOfPeople in Conveyor
 	float ConveyorContent() const;
 
 	// One simulation "day" step (called every SimulationStepTime seconds)
