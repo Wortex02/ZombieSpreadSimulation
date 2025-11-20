@@ -293,10 +293,9 @@ void ASimulationController::StepSimulation()
 	int32 RemainingToConvert = NumNewZombies;
 	while (RemainingToConvert > 0 && BittenPeople.Num() > 0)
 	{
-		const int32 Index = FMath::RandRange(0, BittenPeople.Num() - 1);
-		APerson* NewZombie = BittenPeople[Index];
+		APerson* NewZombie = BittenPeople[0];
 		
-		BittenPeople.RemoveAtSwap(Index);
+		BittenPeople.RemoveAt(0);
 		ZombiePeople.Add(NewZombie);
 		
 		NewZombie->SetState(EPersonState::Zombie);
