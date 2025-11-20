@@ -29,7 +29,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="State")
 	void SetState(EPersonState NewState);
 
-	// Blueprint gets this so you can play animations, switch mesh, etc.
+	// Blueprint gets this to play animations and switch mesh.
 	UFUNCTION(BlueprintImplementableEvent, Category="State")
 	void OnStateChanged(EPersonState NewState);
 };

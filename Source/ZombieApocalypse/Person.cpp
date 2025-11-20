@@ -10,10 +10,7 @@ APerson::APerson()
 
 void APerson::SetState(EPersonState NewState)
 {
-	if (CurrentState == NewState)
-	{
-		return;
-	}
+	if (CurrentState == NewState) return;
 
 	CurrentState = NewState;
 	OnStateChanged(NewState);
